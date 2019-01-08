@@ -9,7 +9,7 @@ if sys.platform != 'darwin':
 import plistlib
 from buildozer import BuildozerCommandException
 from buildozer.target import Target, no_config
-from os.path import join, basename, expanduser, realpath
+from os.path import join, exists, basename, expanduser, realpath
 from getpass import getpass
 
 PHP_TEMPLATE = '''
@@ -173,7 +173,7 @@ class TargetIos(Target):
             package = package_domain + '.' + package
         return package.lower()
 
-    def build_package(self):
+    def _create_xcode_project(self):
         self._unlock_keychain()
 
         # create the project
@@ -206,6 +206,10 @@ class TargetIos(Target):
 
         # ok, write the modified plist.
         plistlib.writePlist(plist, plist_rfn)
+        return app_name, version
+
+    def build_package(self):
+        app_name, version = self._create_xcode_project()
 
         mode = 'Debug' if self.build_mode == 'debug' else 'Release'
         self.buildozer.cmd('xcodebuild -configuration {} ENABLE_BITCODE=NO clean build'.format(mode),
@@ -284,8 +288,20 @@ class TargetIos(Target):
         app_name = app_name.lower()
 
         ios_dir = ios_dir = join(self.buildozer.platform_dir, 'kivy-ios')
+        project_dir = join(ios_dir, '{}-ios'.format(app_name))
+
+        # if not exists(project_dir):
+        self.buildozer.prepare_for_build()
+        self.build_mode = 'debug'
+        self.buildozer.build_id = int(self.buildozer.state.get('cache.build_id', '0')) + 1
+        self.buildozer.state['cache.build_id'] = str(self.buildozer.build_id)
+
+        self.buildozer.info('Build the application #{}'.format(self.buildozer.build_id))
+        self.buildozer.build_application()
+
+        self._create_xcode_project()
         self.buildozer.cmd('open {}.xcodeproj'.format(
-            app_name), cwd=join(ios_dir, '{}-ios'.format(app_name)))
+            app_name), cwd=project_dir)
 
     def _run_ios_deploy(self, lldb=False):
         state = self.buildozer.state
