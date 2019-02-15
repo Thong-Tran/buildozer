@@ -238,7 +238,7 @@ class TargetIos(Target):
         self.buildozer.cmd((
                 '/usr/bin/xcodebuild'
                 ' -exportArchive'
-                ' -exportFormat IPA'
+                #' -exportFormat IPA'
                 ' -archivePath "{xcarchive}"'
                 ' -exportPath "{ipa}"'
                 ' CODE_SIGN_IDENTITY={ioscodesign}'
