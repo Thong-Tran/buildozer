@@ -91,30 +91,11 @@ class TargetIos(Target):
         self.buildozer.debug(' -> found {0}'.format(xcode))
 
     def install_platform(self):
-        cmd = self.buildozer.cmd
-        self.ios_dir = ios_dir = join(self.buildozer.platform_dir, 'kivy-ios')
-        custom_kivy_ios = self.buildozer.config.getdefault('app', 'ios.kivy_ios_dir')
-        if custom_kivy_ios:
-            custom_kivy_ios = join(self.buildozer.root_dir, custom_kivy_ios)
-        if not self.buildozer.file_exists(ios_dir):
-            if custom_kivy_ios:
-                cmd('mkdir -p "{}"'.format(ios_dir))
-                cmd('cp -a "{}"/* "{}"/'.format(custom_kivy_ios, ios_dir))
-            else:
-                cmd('git clone https://github.com/kivy/kivy-ios',
-                        cwd=self.buildozer.platform_dir)
-        elif self.platform_update:
-            if custom_kivy_ios:
-                cmd('cp -a "{}"/* "{}"/'.format(custom_kivy_ios, ios_dir))
-            else:
-                cmd('git clean -dxf', cwd=ios_dir)
-                cmd('git pull origin master', cwd=ios_dir)
-
-        self.ios_deploy_dir = ios_deploy_dir = join(self.buildozer.platform_dir,
-                'ios-deploy')
-        if not self.buildozer.file_exists(ios_deploy_dir):
-            cmd('git clone --branch 1.7.0 https://github.com/phonegap/ios-deploy',
-                    cwd=self.buildozer.platform_dir)
+        self.ios_dir = self.install_or_update_repo('kivy-ios', platform='ios')
+        self.ios_deploy_dir = self.install_or_update_repo('ios-deploy',
+                                                          platform='ios',
+                                                          branch='1.7.0',
+                                                          owner='phonegap')
 
     def get_available_packages(self):
         available_modules = self.buildozer.cmd(
@@ -180,15 +161,19 @@ class TargetIos(Target):
         app_name = self.buildozer.namify(self.buildozer.config.get('app',
             'package.name'))
 
+        ios_frameworks = self.buildozer.config.getlist('app', 'ios.frameworks', '')
+        frameworks_cmd = ''
+        for framework in ios_frameworks:
+            frameworks_cmd += '--add-framework={} '.format(framework)
+
         self.app_project_dir = join(self.ios_dir, '{0}-ios'.format(app_name.lower()))
         if not self.buildozer.file_exists(self.app_project_dir):
-            self.buildozer.cmd('./toolchain.py create {0} {1}'.format(
-                app_name, self.buildozer.app_dir),
-                cwd=self.ios_dir)
+            create_cmd = './toolchain.py create {0}{1} {2}'.format(frameworks_cmd, app_name,
+                                                                   self.buildozer.app_dir)
+            self.buildozer.cmd(create_cmd, cwd=self.ios_dir)
         else:
-            self.buildozer.cmd('./toolchain.py update {0}-ios'.format(
-                app_name),
-                cwd=self.ios_dir)
+            update_cmd = './toolchain.py update {0}{1}-ios'.format(frameworks_cmd, app_name)
+            self.buildozer.cmd(update_cmd, cwd=self.ios_dir)
 
         # fix the plist
         plist_fn = '{}-Info.plist'.format(app_name.lower())
