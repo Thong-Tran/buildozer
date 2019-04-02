@@ -766,6 +766,12 @@ class TargetAndroid(Target):
             cmd.append('--add-aar')
             cmd.append(realpath(aar))
 
+        # support for uses-lib
+        uses_library = self.buildozer.config.getlist(
+            'app', 'android.uses_library', '')
+        for lib in uses_library:
+            cmd.append('--uses-library={}'.format(lib))
+
         # support for gradle dependencies
         gradle_dependencies = self.buildozer.config.getlist('app', 'android.gradle_dependencies', [])
         for gradle_dependency in gradle_dependencies:
@@ -1006,8 +1012,10 @@ class TargetAndroid(Target):
         if self.build_mode == 'debug':
             build_cmd += [("debug", )]
             mode = 'debug'
+            mode_sign = mode
         else:
             build_cmd += [("release", )]
+            mode_sign = "release"
             mode = self.get_release_mode()
 
         self.execute_build_package(build_cmd)
@@ -1032,7 +1040,7 @@ class TargetAndroid(Target):
             packagename = config.get('app', 'package.name')
             apk = u'{packagename}-{mode}.apk'.format(
                 packagename=packagename, mode=mode)
-            apk_dir = join(dist_dir, "build", "outputs", "apk", mode)
+            apk_dir = join(dist_dir, "build", "outputs", "apk", mode_sign)
             apk_dest = u'{packagename}-{version}-{mode}.apk'.format(
                 packagename=packagename, mode=mode, version=version)
 

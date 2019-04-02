@@ -112,7 +112,7 @@ class Buildozer(object):
 
     def __init__(self, filename='buildozer.spec', target=None):
         super(Buildozer, self).__init__()
-        self.log_level = 1
+        self.log_level = 2
         self.environ = {}
         self.specfilename = filename
         self.state = None
@@ -139,7 +139,7 @@ class Buildozer(object):
 
         try:
             self.log_level = int(self.config.getdefault(
-                'buildozer', 'log_level', '1'))
+                'buildozer', 'log_level', '2'))
         except Exception:
             pass
 
@@ -295,7 +295,6 @@ class Buildozer(object):
             else:
                 self.debug('Run {0!r} ...'.format(command.split()[0]))
         self.debug('Cwd {}'.format(kwargs.get('cwd')))
-        self.log_env(self.DEBUG, kwargs["env"])
 
         # open the process
         if sys.platform == 'win32':
@@ -328,7 +327,7 @@ class Buildozer(object):
                     ret_stdout.append(chunk)
                 if show_output:
                     if IS_PY3:
-                        stderr.write(chunk.decode('utf-8'))
+                        stderr.write(chunk.decode('utf-8', 'replace'))
                     else:
                         stdout.write(chunk)
             if fd_stderr in readx:
@@ -339,7 +338,7 @@ class Buildozer(object):
                     ret_stderr.append(chunk)
                 if show_output:
                     if IS_PY3:
-                        stderr.write(chunk.decode('utf-8'))
+                        stderr.write(chunk.decode('utf-8', 'replace'))
                     else:
                         stderr.write(chunk)
 
@@ -510,10 +509,12 @@ class Buildozer(object):
             exit(1)
 
         # did we already installed the libs ?
-        if exists(self.applibs_dir) and \
-           self.state.get('cache.applibs', '') == requirements:
-                self.debug('Application requirements already installed, pass')
-                return
+        if (
+            exists(self.applibs_dir) and
+            self.state.get('cache.applibs', '') == requirements
+        ):
+            self.debug('Application requirements already installed, pass')
+            return
 
         # recreate applibs
         self.rmdir(self.applibs_dir)
@@ -661,7 +662,7 @@ class Buildozer(object):
             return
 
         if archive.endswith('.zip'):
-            self.cmd('unzip {}'.format(join(cwd, archive)), cwd=cwd)
+            self.cmd('unzip -q {}'.format(join(cwd, archive)), cwd=cwd)
             return
 
         raise Exception('Unhandled extraction for type {0}'.format(archive))
@@ -692,8 +693,9 @@ class Buildozer(object):
             else:
                 progression = '{0:.2f}%'.format(
                         index * blksize * 100. / float(size))
-            stdout.write('- Download {}\r'.format(progression))
-            stdout.flush()
+            if "CI" not in environ:
+                stdout.write('- Download {}\r'.format(progression))
+                stdout.flush()
 
         url = url + filename
         if cwd:
@@ -1053,7 +1055,7 @@ class Buildozer(object):
         # maybe it's a target?
         targets = [x[0] for x in self.targets()]
         if command not in targets:
-            print('Unknown command/target {}'.format(self.translate_target(command, inverse=True)))
+            print('Unknown command/target {}'.format(command))
             exit(1)
 
         self.set_target(command)
