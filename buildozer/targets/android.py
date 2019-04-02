@@ -665,9 +665,9 @@ class TargetAndroid(Target):
         cmd('{} -m pip install -q {} {}'.format(executable, options, " ".join(pip_deps)))
 
     def compile_platform(self):
-        app_requirements = self.buildozer.config
+        app_requirements = self.buildozer.config\
                             .getlist('app', 'requirements', '')+\
-                            self.buildozer.config
+                            self.buildozer.config\
                             .getlist('app', 'requirements.android', '')
         dist_name = self.buildozer.config.get('app', 'package.name')
         local_recipes = self.get_local_recipes_dir()

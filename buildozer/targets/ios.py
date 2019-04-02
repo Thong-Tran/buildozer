@@ -107,9 +107,9 @@ class TargetIos(Target):
         # for ios, the compilation depends really on the app requirements.
         # compile the distribution only if the requirements changed.
         last_requirements = self.buildozer.state.get('ios.requirements', '')
-        app_requirements = self.buildozer.config
+        app_requirements = self.buildozer.config\
                             .getlist('app', 'requirements', '')+\
-                            self.buildozer.config
+                            self.buildozer.config\
                             .getlist('app', 'requirements.ios', '')
 
         # we need to extract the requirements that kivy-ios knows about
