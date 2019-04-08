@@ -248,6 +248,15 @@ ios.ios_deploy_branch = 1.7.0
 #ios.codesign.release = %(ios.codesign.debug)s
 
 
+# (list) Application requirements of android
+[app:requirements.android]
+
+
+# (list) Application requirements of ios
+[app:requirements.ios]
+
+
+
 [buildozer]
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
