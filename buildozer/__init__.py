@@ -133,11 +133,12 @@ class Buildozer(object):
                 self.config.read(filename)
             self.check_configuration_tokens()
 
-        if exists('buildozer-local.spec'):
+        local_file = 'buildozer-local.spec'
+        if exists(local_file):
             try:
-                self.config.read(filename, "utf-8")
+                self.config.read(local_file, "utf-8")
             except TypeError:  # python 2 has no second arg here
-                self.config.read(filename)
+                self.config.read(local_file)
 
         # Check all section/tokens for env vars, and replace the
         # config value if a suitable env var exists.
