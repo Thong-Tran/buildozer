@@ -334,7 +334,7 @@ class Buildozer(object):
                     ret_stdout.append(chunk)
                 if show_output:
                     if IS_PY3:
-                        stderr.write(chunk.decode('utf-8', 'replace'))
+                        stdout.write(chunk.decode('utf-8', 'replace'))
                     else:
                         stdout.write(chunk)
             if fd_stderr in readx:
@@ -349,8 +349,8 @@ class Buildozer(object):
                     else:
                         stderr.write(chunk)
 
-        stdout.flush()
-        stderr.flush()
+            stdout.flush()
+            stderr.flush()
 
         process.communicate()
         if process.returncode != 0 and break_on_error:
