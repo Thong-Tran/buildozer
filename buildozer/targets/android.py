@@ -880,10 +880,11 @@ class TargetAndroid(Target):
         version = self.buildozer.get_version()
 
         # add extra libs/armeabi files in dist/default/libs/armeabi
-        # (same for armeabi-v7a, x86, mips)
+        # (same for armeabi-v7a, arm64-v8a, x86, mips)
         for config_key, lib_dir in (
             ('android.add_libs_armeabi', 'armeabi'),
             ('android.add_libs_armeabi_v7a', 'armeabi-v7a'),
+            ('android.add_libs_arm64_v8a', 'arm64-v8a'),            
             ('android.add_libs_x86', 'x86'),
             ('android.add_libs_mips', 'mips')):
 
@@ -984,16 +985,17 @@ class TargetAndroid(Target):
             build_cmd += [("--ouya-icon", join(self.buildozer.root_dir,
                                                ouya_icon))]
 
-        # add orientation
-        orientation = config.getdefault('app', 'orientation', 'landscape')
-        if orientation == 'all':
-            orientation = 'sensor'
-        build_cmd += [("--orientation", orientation)]
+        if config.getdefault('app','p4a.bootstrap','sdl2') != 'service_only':
+            # add orientation
+            orientation = config.getdefault('app', 'orientation', 'landscape')
+            if orientation == 'all':
+                orientation = 'sensor'
+            build_cmd += [("--orientation", orientation)]
 
-        # fullscreen ?
-        fullscreen = config.getbooldefault('app', 'fullscreen', True)
-        if not fullscreen:
-            build_cmd += [("--window", )]
+            # fullscreen ?
+            fullscreen = config.getbooldefault('app', 'fullscreen', True)
+            if not fullscreen:
+                build_cmd += [("--window", )]
 
         # wakelock ?
         wakelock = config.getbooldefault('app', 'android.wakelock', False)
